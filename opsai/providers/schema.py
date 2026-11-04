@@ -9,20 +9,34 @@ PHASES = {"diagnose", "fix", "verify", "rollback"}
 SHELLS = {"bash", "powershell", "kubectl", "kafka-cli", "az", "other"}
 RISKS = {"read_only", "change", "destructive"}
 
+# Strict-mode compatible: every object lists all properties in `required`
+# and sets additionalProperties false, enums mirror validate_analysis().
 ANALYSIS_JSON_SCHEMA: dict[str, Any] = {
     "type": "object",
-    "required": ["summary", "hypotheses", "recommendations", "remediation_plan"],
+    "additionalProperties": False,
+    "required": [
+        "summary",
+        "hypotheses",
+        "recommendations",
+        "remediation_plan",
+        "missing_information",
+        "follow_up_questions",
+    ],
     "properties": {
         "summary": {"type": "string"},
         "hypotheses": {
             "type": "array",
             "items": {
                 "type": "object",
+                "additionalProperties": False,
                 "required": ["cause", "confidence", "confidence_label", "evidence", "reasoning"],
                 "properties": {
                     "cause": {"type": "string"},
                     "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-                    "confidence_label": {"type": "string"},
+                    "confidence_label": {
+                        "type": "string",
+                        "enum": sorted(CONFIDENCE_LABELS),
+                    },
                     "evidence": {"type": "array", "items": {"type": "string"}},
                     "reasoning": {"type": "string"},
                 },
@@ -31,12 +45,14 @@ ANALYSIS_JSON_SCHEMA: dict[str, Any] = {
         "recommendations": {"type": "array", "items": {"type": "string"}},
         "remediation_plan": {
             "type": "object",
+            "additionalProperties": False,
             "required": ["steps"],
             "properties": {
                 "steps": {
                     "type": "array",
                     "items": {
                         "type": "object",
+                        "additionalProperties": False,
                         "required": [
                             "order",
                             "title",
@@ -47,17 +63,29 @@ ANALYSIS_JSON_SCHEMA: dict[str, Any] = {
                             "purpose",
                             "risk",
                             "expected",
+                            "verify_command",
+                            "rollback_command",
+                            "requires_downtime",
                         ],
                         "properties": {
                             "order": {"type": "integer"},
                             "title": {"type": "string"},
-                            "phase": {"type": "string"},
+                            "phase": {"type": "string", "enum": sorted(PHASES)},
                             "target": {"type": "string"},
-                            "shell": {"type": "string"},
+                            "shell": {"type": "string", "enum": sorted(SHELLS)},
                             "command": {"type": "string"},
                             "purpose": {"type": "string"},
-                            "risk": {"type": "string"},
-                            "expected": {"type": "object"},
+                            "risk": {"type": "string", "enum": sorted(RISKS)},
+                            "expected": {
+                                "type": "object",
+                                "additionalProperties": False,
+                                "required": ["exit_code", "stdout_regex", "description"],
+                                "properties": {
+                                    "exit_code": {"type": "integer"},
+                                    "stdout_regex": {"type": ["string", "null"]},
+                                    "description": {"type": "string"},
+                                },
+                            },
                             "verify_command": {"type": ["string", "null"]},
                             "rollback_command": {"type": ["string", "null"]},
                             "requires_downtime": {"type": "boolean"},

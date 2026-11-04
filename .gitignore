@@ -30,6 +30,8 @@ opsai-data/
 
 # Secrets - never commit
 .opsai-master-key
+token
+tokenAPI
 *.key
 *.pem
 .env

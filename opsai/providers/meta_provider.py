@@ -58,9 +58,11 @@ class MetaProvider(LLMProvider):
         api_key: str = "",
         registry: ModelRegistry | None = None,
         base_url: str = DEFAULT_BASE_URL,
+        reasoning_effort: str | None = None,
     ) -> None:
         super().__init__(api_key=api_key, registry=registry)
         self.base_url = base_url.rstrip("/")
+        self.reasoning_effort = reasoning_effort
 
     def _headers(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {self.api_key}"}
@@ -88,8 +90,14 @@ class MetaProvider(LLMProvider):
         if request.response_schema:
             payload["response_format"] = {
                 "type": "json_schema",
-                "json_schema": {"name": "opsai_analysis", "schema": request.response_schema},
+                "json_schema": {
+                    "name": "opsai_analysis",
+                    "strict": True,
+                    "schema": request.response_schema,
+                },
             }
+        if self.reasoning_effort is not None:
+            payload["reasoning_effort"] = self.reasoning_effort
         with httpx.Client(timeout=request.timeout) as client:
             response = with_retry(
                 lambda: client.post(
@@ -101,7 +109,8 @@ class MetaProvider(LLMProvider):
         response.raise_for_status()
         data = response.json()
         choices = data.get("choices", [])
-        text = choices[0].get("message", {}).get("content", "") if choices else ""
+        message = choices[0].get("message", {}) if choices else {}
+        text = _message_text(message.get("content"))
         usage = data.get("usage", {})
         parsed = _try_parse_json(text)
         return LLMResponse(
@@ -117,6 +126,16 @@ class MetaProvider(LLMProvider):
 def is_contributor_model(model: str) -> bool:
     """Return True for Meta contributor-mode model ids (FR-310)."""
     return _CONTRIBUTOR_RE.match(model) is not None
+
+
+def _message_text(content: Any) -> str:
+    """Coerce message content to text (None when starved, blocks, or string)."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = [p.get("text", "") for p in content if isinstance(p, dict)]
+        return "".join(p for p in parts if isinstance(p, str))
+    return ""
 
 
 def _try_parse_json(text: str) -> dict[str, Any] | None:

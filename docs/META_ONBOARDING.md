@@ -5,7 +5,7 @@ o Zero Data Retention. Vše ostatní (kód, testy) funguje bez klíče v mock re
 
 ## TBD-101: Ověřit funkční přístup z ČR
 
-Vlastník: vlastník projektu. Stav: OPEN.
+Vlastník: vlastník projektu. Stav: DONE (2026-11-04, test 5/5 PASS z ČR).
 
 ### 1. Registrace a billing
 
@@ -43,6 +43,24 @@ nebo neaktivní billing. Detail chyby vypíše skript.
 - Skript skončí kódem 0 a v seznamu modelů je `muse-spark-1.3`.
 - Po splnění lze zapnout živý režim: `OPSAI_AI_LIVE=1` a spustit živé
   kontraktní testy (`pytest tests/test_meta_live.py -m live`).
+
+### 4. Ověřené skutečnosti (živé testy 2026-11-04)
+
+- `GET /v1/models` vrací: `muse-spark-1.1/1.2/1.3`, `muse-wonder-1.0`,
+  `muse-spark-1.2-contributor`, `muse-spark-1.3-contributor` plus
+  nemodelové `muse-image-1.0`, `muse-voice-transcribe-1.0`, `sam-3.1`.
+  Whitelist provideru pouští jen 4 chat modely, contributor modely
+  blokuje FR-310.
+- Muse Spark/Wonder jsou reasoning modely: reasoning tokeny se počítají
+  do `max_tokens` i do fakturace. Triviální dotaz spálí stovky
+  reasoning tokenů — proto má analýza rozpočet 8192 tokenů (jinak
+  `finish_reason: length` s `content: null`) a provider volitelně
+  podporuje `reasoning_effort` (`minimal`–`max`; `none` Meta zamítá).
+- `response_format` s `json_schema` a `strict: true` Meta vynucuje;
+  schéma `ANALYSIS_JSON_SCHEMA` je striktně kompatibilní
+  (`additionalProperties: false`, všechna pole v `required`, enumy
+  pro fáze/shelly/rizika/labely). Bez strict si model enumy vymýšlel.
+- `muse-wonder-1.0` (preview) je funkční přes stejný endpoint.
 
 ## TBD-102: Rozhodnutí o ZDR
 

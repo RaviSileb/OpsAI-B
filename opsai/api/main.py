@@ -1008,6 +1008,8 @@ def build_api_router(deps: ApiDeps) -> APIRouter:  # noqa: C901 - declarative ro
             system=system,
             messages=[LLMMessage(role="user", content=f"<<<LOGS\n{stage['masked']}\nLOGS>>>")],
             response_schema=ANALYSIS_JSON_SCHEMA,
+            # Reasoning models spend part of the budget on hidden reasoning.
+            max_output_tokens=8192,
         )
         try:
             response = provider.generate(llm_request, str(stage["model"]))

@@ -92,6 +92,7 @@ def test_generate_posts_meta_chat_completions(monkeypatch: pytest.MonkeyPatch) -
     assert payload["max_tokens"] == 4096
     assert payload["response_format"]["type"] == "json_schema"
     assert payload["response_format"]["json_schema"]["name"] == "opsai_analysis"
+    assert payload["response_format"]["json_schema"]["strict"] is True
 
 
 def test_generate_never_uses_grounding(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -114,6 +115,57 @@ def test_generate_never_uses_grounding(monkeypatch: pytest.MonkeyPatch) -> None:
         assert "grounding" not in json.dumps(payload).lower()
     plain = json.loads(seen[1].content.decode("utf-8"))
     assert "response_format" not in plain
+
+
+def test_generate_tolerates_null_content(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Starved reasoning responses (content None) must not crash."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"content": None}, "finish_reason": "length"}],
+                "usage": {"prompt_tokens": 5, "completion_tokens": 7},
+            },
+        )
+
+    _patched_client(monkeypatch, handler)
+    provider = MetaProvider(api_key="k", registry=_registry())
+    response = provider.generate(_request(schema=False), DEFAULT_MODEL)
+    assert response.text == ""
+    assert response.data is None
+    assert response.tokens_out == 7
+
+
+def test_generate_joins_block_content(monkeypatch: pytest.MonkeyPatch) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"content": [{"text": "a"}, {"text": "b"}]}}],
+                "usage": {},
+            },
+        )
+
+    _patched_client(monkeypatch, handler)
+    provider = MetaProvider(api_key="k", registry=_registry())
+    response = provider.generate(_request(schema=False), DEFAULT_MODEL)
+    assert response.text == "ab"
+
+
+def test_reasoning_effort_is_optional(monkeypatch: pytest.MonkeyPatch) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=_completion_json())
+
+    seen = _patched_client(monkeypatch, handler)
+    MetaProvider(api_key="k", registry=_registry()).generate(_request(schema=False), DEFAULT_MODEL)
+    MetaProvider(api_key="k", registry=_registry(), reasoning_effort="low").generate(
+        _request(schema=False), DEFAULT_MODEL
+    )
+    default = json.loads(seen[0].content.decode("utf-8"))
+    tuned = json.loads(seen[1].content.decode("utf-8"))
+    assert "reasoning_effort" not in default
+    assert tuned["reasoning_effort"] == "low"
 
 
 def test_generate_tolerates_non_json_text(monkeypatch: pytest.MonkeyPatch) -> None:
