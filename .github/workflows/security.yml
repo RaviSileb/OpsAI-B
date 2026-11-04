@@ -18,7 +18,7 @@ env:
 jobs:
   appsec:
     name: Dependency, SAST and secret scans
-    runs-on: [self-hosted, linux, x64, notebook]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -42,7 +42,7 @@ jobs:
 
   supply-chain:
     name: Image scan and SBOM
-    runs-on: [self-hosted, linux, x64, notebook]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
@@ -53,7 +53,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           push: false
-          tags: opsai-a:scan
+          tags: opsai-b:scan
           load: true
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@v0.36.0
@@ -68,7 +68,7 @@ jobs:
       - name: Trivy image scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: opsai-a:scan
+          image-ref: opsai-b:scan
           severity: HIGH,CRITICAL
           exit-code: "1"
           ignore-unfixed: true
@@ -90,7 +90,7 @@ jobs:
       - name: SBOM (CycloneDX)
         uses: anchore/sbom-action@v0
         with:
-          image: opsai-a:scan
+          image: opsai-b:scan
           format: cyclonedx-json
           output-file: sbom.cyclonedx.json
       - name: Upload SBOM

@@ -61,7 +61,7 @@ Dokumentace:
 - `docs/DATABASE.md` — schéma app.db a migrace
 - `docs/GITOPS.md` — ArgoCD + Kustomize
 - `docs/HELM.md` — Helm chart
-- `docs/RUNNER.md` — self-hosted runner na notebooku
+- `docs/RUNNER.md` — GitHub-hostované runnery
 
 CI/CD: `.github/workflows/` (`ci.yml` lint/test/build/helm,
 `security.yml` pip-audit/bandit/gitleaks/Trivy/SBOM,

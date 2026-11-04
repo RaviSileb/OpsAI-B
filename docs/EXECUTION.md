@@ -65,5 +65,5 @@ Výchozí: deny-list FR-541, four-eyes pro `prod` + `change/destructive`.
   živý stream; výstup je k dispozici po doběhu).
 - Identita je dev-mode (`X-User` hlavička, desktop default `local`);
   OIDC/PAT přijdou s autentizačním milníkem.
-- Skutečné SSH proti živému serveru není v CI (na notebooku neběží
+- Skutečné SSH proti živému serveru není v CI (v runneru neběží
   sshd); argv a chování kryjí testy se stub binárkou.

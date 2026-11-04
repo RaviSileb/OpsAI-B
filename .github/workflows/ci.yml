@@ -13,7 +13,7 @@ env:
 jobs:
   quality:
     name: Lint, types and tests
-    runs-on: [self-hosted, linux, x64, notebook]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,10 +37,12 @@ jobs:
 
   helm:
     name: Helm lint and template
-    runs-on: [self-hosted, linux, x64, notebook]
+    runs-on: ubuntu-24.04
     needs: quality
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
       - name: Helm lint
         run: helm lint helm/opsai
       - name: Helm template
@@ -55,7 +57,7 @@ jobs:
 
   build:
     name: Build wheel, Docker image and .deb
-    runs-on: [self-hosted, linux, x64, notebook]
+    runs-on: ubuntu-24.04
     needs: quality
     steps:
       - uses: actions/checkout@v4
@@ -74,7 +76,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           push: false
-          tags: opsai-a:ci
+          tags: opsai-b:ci
       - name: Build .deb
         run: bash packaging/linux/build_deb.sh
       - name: Upload artifacts
