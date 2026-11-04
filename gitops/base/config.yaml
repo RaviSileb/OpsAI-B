@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opsai-config
+  labels:
+    app.kubernetes.io/name: opsai
+data:
+  OPSAI_MODE: server
+  OPSAI_HOST: "0.0.0.0"
+  OPSAI_PORT: "8080"
+  OPSAI_DATA_DIR: /data
+  OPSAI_EXECUTION_ENABLED: "false"
+  OPSAI_RESTRICTED_MODE: "false"
+  OPSAI_SECRET_BACKEND: local
+  OPSAI_LOG_LEVEL: INFO
+  OPSAI_LANGUAGE: cs
+  OPSAI_DEFAULT_TZ: UTC
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: opsai-data
+  labels:
+    app.kubernetes.io/name: opsai
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 20Gi

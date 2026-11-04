@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: opsai
+resources:
+  - ../../base
+  - namespace.yaml
+images:
+  - name: ghcr.io/ravisileb/opsai-a
+    newTag: latest
+configMapGenerator:
+  - name: opsai-config
+    behavior: merge
+    literals:
+      - OPSAI_LOG_LEVEL=INFO
+      - OPSAI_RESTRICTED_MODE=true

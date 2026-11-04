@@ -1,0 +1,10 @@
+name: k8s-crashloop
+title: Kubernetes CrashLoopBackOff
+oql: 'k8s.container:* AND (CrashLoopBackOff OR BackOff OR OOMKilled)'
+sources:
+  - k8s
+context:
+  - k8s events for the same namespace and window
+instructions: >-
+  Find the crashing container, its restart count and last termination reason.
+  Check image pull errors first, then OOMKilled, then application exit codes.

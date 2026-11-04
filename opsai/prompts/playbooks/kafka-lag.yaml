@@ -1,0 +1,11 @@
+name: kafka-lag
+title: Kafka consumer lag and rebalance storm
+oql: 'service:*kafka* AND (lag OR rebalance OR "NotLeaderForPartition" OR ISR)'
+sources:
+  - kafka
+  - file
+context:
+  - broker disk usage notes if present in the same window
+instructions: >-
+  Separate consumer lag (growing offsets) from rebalance storms (frequent
+  revocations) and ISR shrink events. Report affected topics and partitions.

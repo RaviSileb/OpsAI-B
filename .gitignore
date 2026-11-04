@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+.venv*/
+*.whl
+
+# Test & lint caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+bandit-report.json
+pip-audit-report.json
+
+# App data (local runs)
+.data-test/
+opsai-data/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Secrets - never commit
+.opsai-master-key
+*.key
+*.pem
+.env
+.env.*
+
+# Packaging output
+packaging/linux/dist/
+packaging/linux/build/
+*.deb
+*.AppImage
+*.AppDir/
+
+# GitHub self-hosted runner (lives outside repo, listed for safety)
+actions-runner/
+_runner/

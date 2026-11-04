@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: opsai
+  namespace: argocd
+spec:
+  description: OpsAI variant B
+  sourceRepos:
+    - https://github.com/RaviSileb/OpsAI-A.git
+  destinations:
+    - namespace: opsai
+      server: https://kubernetes.default.svc
+    - namespace: opsai-staging
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

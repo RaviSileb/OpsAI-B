@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: opsai
+  labels:
+    app.kubernetes.io/name: opsai
+    opsai.io/environment: production

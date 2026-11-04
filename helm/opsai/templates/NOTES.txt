@@ -1,0 +1,9 @@
+OpsAI {{ .Chart.AppVersion }} installed as {{ include "opsai.fullname" . }}.
+
+{{- if .Values.ingress.enabled }}
+Browse http://{{ .Values.ingress.host }} once DNS points at the controller.
+{{- else }}
+Port-forward the service to browse the UI:
+
+  kubectl port-forward svc/{{ include "opsai.fullname" . }} 8080:80
+{{- end }}

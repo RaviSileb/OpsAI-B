@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: opsai
+  labels:
+    app.kubernetes.io/name: opsai
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: opsai
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

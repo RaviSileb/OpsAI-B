@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=OpsAI
+GenericName=Log analysis assistant
+Comment=AI assistant for log analysis and remediation (variant B)
+Exec=/opt/opsai/opsai desktop
+Icon=opsai
+Terminal=false
+Categories=Utility;System;
+Keywords=logs;ai;ops;analysis;

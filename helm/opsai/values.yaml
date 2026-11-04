@@ -1,0 +1,48 @@
+# Default values for the opsai chart (mirrors gitops/base).
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ravisileb/opsai-a
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+# OPSAI_* environment passed via the ConfigMap.
+config:
+  OPSAI_MODE: server
+  OPSAI_HOST: "0.0.0.0"
+  OPSAI_PORT: "8080"
+  OPSAI_DATA_DIR: /data
+  OPSAI_EXECUTION_ENABLED: "false"
+  OPSAI_RESTRICTED_MODE: "false"
+  OPSAI_SECRET_BACKEND: local
+  OPSAI_LOG_LEVEL: INFO
+  OPSAI_LANGUAGE: cs
+  OPSAI_DEFAULT_TZ: UTC
+  OPSAI_SESSION_BACKEND: duckdb
+  OPSAI_PRESIDIO_MODE: "off"
+
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClass: ""
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 3Gi
+
+# Set masterKey to create the secrets Secret (referenced as optional).
+secrets:
+  masterKey: ""
+
+ingress:
+  enabled: false
+  className: ""
+  host: opsai.local

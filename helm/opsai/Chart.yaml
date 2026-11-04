@@ -1,0 +1,8 @@
+apiVersion: v2
+name: opsai
+description: OpsAI-B log analysis assistant (server mode)
+type: application
+version: 0.1.0
+appVersion: 0.1.0
+maintainers:
+  - name: Ivar Belis

@@ -1,0 +1,5 @@
+title = "OpsAI-A gitleaks config"
+
+[allowlist]
+description = "Test fixtures with synthetic secrets"
+paths = ['''tests/.*''']

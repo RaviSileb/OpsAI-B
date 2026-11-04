@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+
+env:
+  UV_VERSION: "0.12.12"
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  quality:
+    name: Lint, types and tests
+    runs-on: [self-hosted, linux, x64, notebook]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+      - name: Install project with dev extras
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
+      - name: Ruff lint
+        run: .venv/bin/ruff check opsai tests
+      - name: Ruff format
+        run: .venv/bin/ruff format --check opsai tests
+      - name: Mypy
+        run: .venv/bin/mypy opsai
+      - name: Pytest
+        run: .venv/bin/python -m pytest tests/ -q
+
+  helm:
+    name: Helm lint and template
+    runs-on: [self-hosted, linux, x64, notebook]
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - name: Helm lint
+        run: helm lint helm/opsai
+      - name: Helm template
+        run: |
+          helm template opsai-ci helm/opsai --set secrets.masterKey=dummy --set ingress.enabled=true > /dev/null
+          helm template opsai-ci helm/opsai --set persistence.enabled=false > /dev/null
+      - name: Kustomize build
+        run: |
+          kubectl kustomize gitops/base > /dev/null
+          kubectl kustomize gitops/overlays/staging > /dev/null
+          kubectl kustomize gitops/overlays/production > /dev/null
+
+  build:
+    name: Build wheel, Docker image and .deb
+    runs-on: [self-hosted, linux, x64, notebook]
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Build wheel and sdist
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build slim image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          tags: opsai-a:ci
+      - name: Build .deb
+        run: bash packaging/linux/build_deb.sh
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: opsai-linux-build
+          path: |
+            dist/*
+            packaging/linux/dist/*.deb
+          retention-days: 14
